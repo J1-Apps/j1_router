@@ -14,13 +14,13 @@ class J1Route<T extends RouteConfig> extends Equatable {
   })  : _parts = parts,
         _queryParams = queryParams;
 
-  /// Builds a [Uri] for this route from a provided [RouteConfig].
-  Uri build({T? config}) => _build(
+  /// Builds a [String] path for this route from a provided [RouteConfig].
+  String build({T? config}) => _build(
         pathParams: config?.pathParams ?? const {},
         queryParams: config?.queryParams ?? const {},
       );
 
-  Uri _build({
+  String _build({
     Map<String, Object> pathParams = const {},
     Map<String, Object?> queryParams = const {},
   }) {
@@ -46,7 +46,10 @@ class J1Route<T extends RouteConfig> extends Equatable {
       }
     }
 
-    return Uri(path: pathBuilder.toString(), queryParameters: queryMap);
+    return Uri(
+      path: pathBuilder.toString(),
+      queryParameters: queryMap.isNotEmpty ? queryMap : null,
+    ).toString();
   }
 
   @override

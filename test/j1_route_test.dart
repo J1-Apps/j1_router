@@ -55,14 +55,12 @@ const _homeRoute = J1Route(parts: [PathSegment("/")]);
 void main() {
   group("J1 Route", () {
     test("builds a home route", () {
-      final uri = _homeRoute.build();
-
-      expect(uri.path, "/");
-      expect(uri.query, "");
+      final path = _homeRoute.build();
+      expect(path, "/");
     });
 
     test("builds a route from a config", () {
-      final uri = _testRoute.build(
+      final path = _testRoute.build(
         config: const _TestRouteConfig(
           path0: "testPath0Value",
           path1: true,
@@ -71,8 +69,7 @@ void main() {
         ),
       );
 
-      expect(uri.path, "/test0/testPath0Value/test1/true/test2");
-      expect(uri.query, "query0=testQuery0Value&query1=10");
+      expect(path, "/test0/testPath0Value/test1/true/test2?query0=testQuery0Value&query1=10");
     });
 
     test("compares route classes", () {

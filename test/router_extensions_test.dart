@@ -39,7 +39,7 @@ void main() {
               return Column(
                 children: [
                   IconButton(
-                    onPressed: () => context.navigate(_homeRoute),
+                    onPressed: () => context.navigate(_homeRoute.build()),
                     icon: const Icon(Icons.arrow_back),
                   ),
                   IconButton(

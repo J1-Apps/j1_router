@@ -7,7 +7,7 @@ final locator = GetIt.instance;
 /// A set of extension functions to make routing more convenient.
 extension RouterExtensions on BuildContext {
   /// Navigates to the given [route].
-  Future<T?> navigate<T extends Object?>(J1Route route) => locator<J1Router>().navigate(this, route);
+  void navigate<T extends Object?>(String route) => locator<J1Router>().navigate(this, route);
 
   /// Pops the top level off the current route, if there is one to pop.
   void pop<T extends Object?>([T? result]) => locator<J1Router>().pop(this, result);
