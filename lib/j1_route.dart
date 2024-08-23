@@ -1,37 +1,52 @@
 import "package:equatable/equatable.dart";
 
+typedef ConfigParser<T extends RouteConfig> = T Function({
+  required Map<String, String> pathParams,
+  required Map<String, String> queryParams,
+});
+
 /// A route for a page accessible via a router.
-class J1Route<T extends RouteConfig> extends Equatable {
+class J1Route<T extends RouteConfig> {
   /// The ordered elements of the route's path.
-  final List<PathComponent> _parts;
+  final List<PathComponent> parts;
 
   /// The possible query params for the route.
-  final List<QueryParam> _queryParams;
+  final List<QueryParam> queryParams;
+
+  /// A function that can parse a set of path and query params into a [RouteConfig].
+  final ConfigParser<T> configParser;
+
+  /// The number of path parts that make up the relative path of this route. Defaults to 1.
+  final int relativePathParts;
+
+  /// The relative path of this route to its parent route.
+  String get relativePath => _buildPath(components: parts.sublist(parts.length - relativePathParts));
 
   const J1Route({
-    required List<PathComponent> parts,
-    List<QueryParam> queryParams = const [],
-  })  : _parts = parts,
-        _queryParams = queryParams;
+    required this.parts,
+    this.queryParams = const [],
+    required this.configParser,
+    this.relativePathParts = 1,
+  });
 
   /// Builds a [String] path for this route from a provided [RouteConfig].
-  String build({T? config}) => _build(
-        pathParams: config?.pathParams ?? const {},
-        queryParams: config?.queryParams ?? const {},
+  String build(T config) => _build(
+        pathParamMap: config.pathParams,
+        queryParamMap: config.queryParams,
       );
 
   String _build({
-    Map<String, Object> pathParams = const {},
-    Map<String, Object?> queryParams = const {},
+    Map<String, Object> pathParamMap = const {},
+    Map<String, Object?> queryParamMap = const {},
   }) {
     final pathBuilder = StringBuffer();
-    for (final (index, part) in _parts.indexed) {
+    for (final (index, part) in parts.indexed) {
       final value = switch (part) {
-        PathParam() => part.getValue(pathParams),
+        PathParam() => part.getValue(pathParamMap),
         PathSegment() => part.path,
       };
 
-      if (value.endsWith("/") || index >= _parts.length - 1) {
+      if (value.endsWith("/") || index >= parts.length - 1) {
         pathBuilder.write(value);
       } else {
         pathBuilder.write("$value/");
@@ -39,8 +54,8 @@ class J1Route<T extends RouteConfig> extends Equatable {
     }
 
     final queryMap = <String, dynamic>{};
-    for (final param in _queryParams) {
-      final providedValue = param.getValue(queryParams);
+    for (final param in queryParams) {
+      final providedValue = param.getValue(queryParamMap);
       if (providedValue != null) {
         queryMap[param.key] = providedValue;
       }
@@ -51,16 +66,53 @@ class J1Route<T extends RouteConfig> extends Equatable {
       queryParameters: queryMap.isNotEmpty ? queryMap : null,
     ).toString();
   }
-
-  @override
-  List<Object?> get props => [..._parts, ..._queryParams];
 }
 
-abstract class RouteConfig extends Equatable {
-  const RouteConfig();
+String _buildPath({
+  required List<PathComponent> components,
+  bool useParams = false,
+  Map<String, Object>? params,
+}) {
+  final pathBuilder = StringBuffer();
 
+  for (final (index, part) in components.indexed) {
+    final value = switch (part) {
+      PathParam() => useParams ? part.getValue(params ?? {}) : ":${part.key}",
+      PathSegment() => part.path,
+    };
+
+    if (value.endsWith("/") || index >= components.length - 1) {
+      pathBuilder.write(value);
+    } else {
+      pathBuilder.write("$value/");
+    }
+  }
+
+  return pathBuilder.toString();
+}
+
+abstract class RouteConfig {
   Map<String, Object> get pathParams;
   Map<String, Object?> get queryParams;
+
+  const RouteConfig();
+}
+
+final class EmptyRouteConfig extends RouteConfig {
+  @override
+  Map<String, Object> get pathParams => const {};
+
+  @override
+  Map<String, Object?> get queryParams => const {};
+
+  const EmptyRouteConfig();
+
+  static EmptyRouteConfig parser({
+    required pathParams,
+    required queryParams,
+  }) {
+    return const EmptyRouteConfig();
+  }
 }
 
 sealed class PathComponent extends Equatable {
