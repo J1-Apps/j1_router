@@ -11,7 +11,7 @@ class MockRoute extends Mock implements J1Route {}
 
 class MockBuildContext extends Fake implements BuildContext {}
 
-const _homeRoute = J1Route(parts: [PathSegment("/")]);
+const _homeRoute = J1Route<EmptyRouteConfig>(parts: [PathSegment("/")], configParser: EmptyRouteConfig.parser);
 
 void main() {
   final router = MockRouter();
@@ -39,7 +39,7 @@ void main() {
               return Column(
                 children: [
                   IconButton(
-                    onPressed: () => context.navigate(_homeRoute),
+                    onPressed: () => context.navigate(_homeRoute.build(const EmptyRouteConfig())),
                     icon: const Icon(Icons.arrow_back),
                   ),
                   IconButton(

@@ -1,18 +1,11 @@
 import "package:flutter_test/flutter_test.dart";
 import "package:j1_router/router.dart";
 
-final class _TestRouteConfig extends RouteConfig {
+final class TestRouteConfig extends RouteConfig {
   final String path0;
   final bool path1;
   final String? query0;
   final int? query1;
-
-  const _TestRouteConfig({
-    required this.path0,
-    required this.path1,
-    this.query0,
-    this.query1,
-  });
 
   @override
   Map<String, Object> get pathParams => {
@@ -26,16 +19,27 @@ final class _TestRouteConfig extends RouteConfig {
         if (query1 != null) "query1": query1,
       };
 
-  @override
-  List<Object?> get props => [
-        path0,
-        path1,
-        query0,
-        query1,
-      ];
+  const TestRouteConfig({
+    required this.path0,
+    required this.path1,
+    this.query0,
+    this.query1,
+  });
+
+  static TestRouteConfig parser({
+    required pathParams,
+    required queryParams,
+  }) {
+    return TestRouteConfig(
+      path0: pathParams["path0"] ?? "default",
+      path1: bool.tryParse(pathParams["path1"] ?? "") ?? false,
+      query0: queryParams["query0"],
+      query1: int.tryParse(queryParams["query1"] ?? ""),
+    );
+  }
 }
 
-const _testRoute = J1Route(
+const testRoute = J1Route<TestRouteConfig>(
   parts: [
     PathSegment("/"),
     PathSegment("test0"),
@@ -48,22 +52,25 @@ const _testRoute = J1Route(
     QueryParam<String>("query0", "default2"),
     QueryParam<int>("query1", null),
   ],
+  configParser: TestRouteConfig.parser,
+  relativePathParts: 5,
 );
 
-const _homeRoute = J1Route(parts: [PathSegment("/")]);
+const homeRoute = J1Route<EmptyRouteConfig>(
+  parts: [PathSegment("/")],
+  configParser: EmptyRouteConfig.parser,
+);
 
 void main() {
   group("J1 Route", () {
     test("builds a home route", () {
-      final uri = _homeRoute.build();
-
-      expect(uri.path, "/");
-      expect(uri.query, "");
+      final path = homeRoute.build(const EmptyRouteConfig());
+      expect(path, "/");
     });
 
     test("builds a route from a config", () {
-      final uri = _testRoute.build(
-        config: const _TestRouteConfig(
+      final path = testRoute.build(
+        const TestRouteConfig(
           path0: "testPath0Value",
           path1: true,
           query0: "testQuery0Value",
@@ -71,13 +78,13 @@ void main() {
         ),
       );
 
-      expect(uri.path, "/test0/testPath0Value/test1/true/test2");
-      expect(uri.query, "query0=testQuery0Value&query1=10");
+      expect(path, "/test0/testPath0Value/test1/true/test2?query0=testQuery0Value&query1=10");
     });
 
     test("compares route classes", () {
-      expect(_homeRoute == const J1Route(parts: [PathSegment("/")]), true);
-      expect(_testRoute == _homeRoute, false);
+      const otherRoute = J1Route<EmptyRouteConfig>(parts: [PathSegment("/")], configParser: EmptyRouteConfig.parser);
+      expect(homeRoute == otherRoute, true);
+      expect(testRoute == homeRoute, false);
 
       expect(const PathSegment("/") == const PathSegment("/"), true);
       expect(const PathSegment("/") == const PathSegment("/home"), false);
