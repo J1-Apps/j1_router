@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:get_it/get_it.dart";
-import "package:j1_router/router.dart";
+import "package:j1_router/j1_router.dart";
 
 final locator = GetIt.instance;
 
