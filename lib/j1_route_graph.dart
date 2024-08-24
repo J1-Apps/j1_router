@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:j1_router/router.dart";
+import "package:j1_router/j1_router.dart";
 
 /// A function that builds a widget from a [BuildContext] and a [RouteConfig].
 typedef RouteBuilder<T extends RouteConfig> = Widget Function(BuildContext, T);

@@ -1,5 +1,5 @@
 import "package:flutter_test/flutter_test.dart";
-import "package:j1_router/router.dart";
+import "package:j1_router/j1_router.dart";
 
 final class TestRouteConfig extends RouteConfig {
   final String path0;

@@ -1,8 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:get_it/get_it.dart";
-import "package:j1_router/go_router/go_route_graph.dart";
-import "package:j1_router/router.dart";
+import "package:j1_router/j1_router.dart";
 
 import "j1_route_test.dart";
 
