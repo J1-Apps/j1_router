@@ -1,27 +1,35 @@
 import "package:equatable/equatable.dart";
 
+/// A function that creates a [RouteConfig] from a set of raw path and query params.
+///
+/// Generally a [RouteConfig] should have a function with a [ConfigParser] signature.
 typedef ConfigParser<T extends RouteConfig> = T Function({
   required Map<String, String> pathParams,
   required Map<String, String> queryParams,
 });
 
-/// A route for a page accessible via a router.
+/// A route for a page accessible via a router. A route is parameterized by a [RouteConfig], which supplies the path
+/// and query paramters to the widget builders.
+///
+/// A default [EmptyRouteConfig] is provided for routes that don't require any paramters.
 class J1Route<T extends RouteConfig> {
-  /// The ordered elements of the route's path.
   final List<PathComponent> parts;
-
-  /// The possible query params for the route.
   final List<QueryParam> queryParams;
-
-  /// A function that can parse a set of path and query params into a [RouteConfig].
   final ConfigParser<T> configParser;
-
-  /// The number of path parts that make up the relative path of this route. Defaults to 1.
   final int relativePathParts;
 
   /// The relative path of this route to its parent route.
   String get relativePath => _buildPath(components: parts.sublist(parts.length - relativePathParts));
 
+  /// Creates a new page route.
+  ///
+  /// - [parts] : The ordered elements of the route's path.
+  /// - [queryParams] : The possible query params for the route.
+  /// - [configParser] : A function that can parse a set of path and query params into a [RouteConfig]. This is usually
+  /// defined on the [RouteConfig] itself for convenience.
+  /// - [relativePathParts] : The number of path elements that make up the relative path of this route to its parent.
+  /// For example, if the parent route is /home then /home/route would have a [relativePathParts] of 1 while
+  /// /home/route/test/part would have a [relativePathParts] of 3.
   const J1Route({
     required this.parts,
     this.queryParams = const [],
@@ -91,6 +99,7 @@ String _buildPath({
   return pathBuilder.toString();
 }
 
+/// A configuration for a given route. This contains the path and query params in a more human-readable form.
 abstract class RouteConfig {
   Map<String, Object> get pathParams;
   Map<String, Object?> get queryParams;
@@ -98,6 +107,8 @@ abstract class RouteConfig {
   const RouteConfig();
 }
 
+/// A default implementation of an empty [RouteConfig]. This is useful for [J1Route]s that don't have any path or query
+/// parameters.
 final class EmptyRouteConfig extends RouteConfig {
   @override
   Map<String, Object> get pathParams => const {};
@@ -119,6 +130,7 @@ sealed class PathComponent extends Equatable {
   const PathComponent();
 }
 
+/// A normal segment of a route's path.
 final class PathSegment extends PathComponent {
   final String path;
 
@@ -128,6 +140,7 @@ final class PathSegment extends PathComponent {
   List<Object?> get props => [path];
 }
 
+/// A parameterized segment of a route's path.
 final class PathParam<T> extends PathComponent {
   final String key;
   final T defaultValue;
@@ -143,14 +156,15 @@ final class PathParam<T> extends PathComponent {
   List<Object?> get props => [key, defaultValue];
 }
 
+/// A query param that provides optional configuration to a route.
 final class QueryParam<T> extends Equatable {
   final String key;
   final T? defaultValue;
 
   const QueryParam(this.key, this.defaultValue);
 
-  String? getValue(Map<String, Object?> pathParams) {
-    final keyedValue = pathParams[key];
+  String? getValue(Map<String, Object?> queryParams) {
+    final keyedValue = queryParams[key];
     return (keyedValue is T ? keyedValue : defaultValue)?.toString();
   }
 
