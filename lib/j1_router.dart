@@ -1,4 +1,4 @@
-library j1_router;
+library;
 
 export "go_router/go_router.dart";
 export "j1_route_graph.dart";
